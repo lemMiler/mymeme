@@ -7,6 +7,13 @@ import tempfile
 import zipfile
 from pathlib import Path
 
+# Windows 控制台默认可能是 GBK，无法输出 emoji，统一按 UTF-8 处理
+for _stream in (sys.stdout, sys.stderr):
+    try:
+        _stream.reconfigure(encoding="utf-8")
+    except Exception:
+        pass
+
 IMAGE_EXTENSIONS = {
     ".jpg", ".jpeg", ".png", ".gif", ".bmp",
     ".webp", ".tiff", ".ico", ".svg",
