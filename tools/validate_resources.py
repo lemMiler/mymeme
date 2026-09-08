@@ -4,13 +4,6 @@ import json
 import sys
 from pathlib import Path
 
-# Windows 控制台默认可能是 GBK，无法输出 emoji，统一按 UTF-8 处理
-for _stream in (sys.stdout, sys.stderr):
-    try:
-        _stream.reconfigure(encoding="utf-8")
-    except Exception:
-        pass
-
 ROOT = Path(__file__).resolve().parents[1]
 RESOURCE_ROOT = ROOT / "resources" / "images"
 MANIFEST = ROOT / "tools" / "resource_manifest.json"
