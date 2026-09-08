@@ -1,0 +1,66 @@
+name: Build Windows DLL + resources
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+    paths:
+      - "Cargo.toml"
+      - "src/**"
+      - "resources/**"
+      - "tools/**"
+      - ".github/workflows/build.yml"
+  pull_request:
+    paths:
+      - "Cargo.toml"
+      - "src/**"
+      - "resources/**"
+      - "tools/**"
+      - ".github/workflows/build.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  build-windows:
+    runs-on: windows-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Rust cache
+        uses: swatinem/rust-cache@v2
+
+      - name: Add Windows target
+        run: rustup target add x86_64-pc-windows-msvc
+
+      - name: Validate resources
+        run: python tools/validate_resources.py
+
+      - name: Cargo check
+        run: cargo check --target x86_64-pc-windows-msvc
+
+      - name: Build release DLL
+        run: cargo build --release --target x86_64-pc-windows-msvc
+
+      - name: Stage MEME_HOME package
+        shell: pwsh
+        run: |
+          $stage = "dist/MEME_HOME"
+          New-Item -ItemType Directory -Force "$stage/libraries" | Out-Null
+          New-Item -ItemType Directory -Force "$stage/resources" | Out-Null
+          Copy-Item "target/x86_64-pc-windows-msvc/release/memelite_custom_memes.dll" "$stage/libraries/"
+          Copy-Item "resources/images" "$stage/resources/images" -Recurse
+          Copy-Item "config.example.toml" "$stage/config.example.toml"
+          Compress-Archive -Path "$stage/*" -DestinationPath "dist/memelite_custom_memes-windows-x64.zip" -Force
+
+      - name: Upload install package
+        uses: actions/upload-artifact@v6
+        with:
+          name: memelite-custom-memes-windows-x64
+          path: dist/memelite_custom_memes-windows-x64.zip
+          if-no-files-found: error

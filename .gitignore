@@ -1,0 +1,7 @@
+/target/
+/dist/
+*.pdb
+.DS_Store
+Thumbs.db
+__pycache__/
+*.pyc
